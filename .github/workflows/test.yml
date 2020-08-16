@@ -1,0 +1,29 @@
+name: Rust
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        release-name: ["rc", "beta"]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get Github Tag
+        env: 
+          RELEASE_NAME: ${{ matrix.release-name }}
+        run: |
+          echo $(curl -s https://api.github.com/repos/nearprotocol/nearcore/releases | jq -c -r --arg RELEASE_NAME "$RELEASE_NAME" 'map(select(.tag_name | contains($RELEASE_NAME)))[0].tag_name') > github-tag.txt
+      - name: Build
+        run: cargo build --verbose
+      - name: Run tests
+        run: cargo test --verbose

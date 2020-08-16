@@ -39,7 +39,7 @@ logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 TIMEOUT = 1500  # after how much time to shut down the test
 TIMEOUT_SHUTDOWN = 120  # time to wait after the shutdown was initiated before failing the test due to process stalling
 MAX_STAKE = int(1e32)
-EPOCH_LENGTH = 20
+EPOCH_LENGTH = 25
 
 # How many times to try to send transactions to each validator.
 # Is only applicable in the scenarios where we expect failures in tx sends.
@@ -234,16 +234,6 @@ def monkey_transactions(stopped, error, nodes, nonces):
                     "BALANCES NEVER CAUGHT UP, CHECKING UNFINISHED TRANSACTIONS"
                 )
 
-                def trace_reverted_txs(last_tx_set, tx_ords):
-                    logging.info("\n\nREVERTING THE FOLLOWING TXS WOULD BE ENOUGH:\n")
-                    for tx_ord in tx_ords:
-                        tx = last_tx_set[tx_ord]
-                        logging.info("\nTRANSACTION %s" % tx_ord)
-                        logging.info("TX tuple: %s" % (tx[1:],))
-                        response = nodes[-1].json_rpc(
-                            'tx', [tx[3], "test%s" % tx[1]], timeout=5)
-                        logging.info("Status: %s", response)
-
                 def revert_txs():
                     nonlocal expected_balances
                     good = 0
@@ -253,6 +243,7 @@ def monkey_transactions(stopped, error, nodes, nonces):
 
                         response = nodes[-1].json_rpc(
                             'tx', [tx[3], "test%s" % tx[1]], timeout=5)
+                        # MOO print("\nFROM: %s TO: %s, AMT: %s, RESPONSE: \n%s\n" % (tx[1], tx[2], tx[4], response))
 
                         if 'error' in response and 'data' in response[
                                 'error'] and "doesn't exist" in response['error'][
@@ -296,51 +287,13 @@ def monkey_transactions(stopped, error, nodes, nonces):
                         "REVERTING DIDN'T HELP, TX EXECUTED: %s, TX LOST: %s" %
                         (good, bad))
 
-                    for i in range(0, len(last_tx_set)):
-                        tx = last_tx_set[i]
-                        expected_balances[tx[1]] += tx[4]
-                        expected_balances[tx[2]] -= tx[4]
-
-                        if get_balances() == expected_balances:
-                            trace_reverted_txs(last_tx_set, [i])
-
-                        for j in range(i + 1, len(last_tx_set)):
-                            tx = last_tx_set[j]
-                            expected_balances[tx[1]] += tx[4]
-                            expected_balances[tx[2]] -= tx[4]
-
-                            if get_balances() == expected_balances:
-                                trace_reverted_txs(last_tx_set, [i, j])
-
-                            for k in range(j + 1, len(last_tx_set)):
-                                tx = last_tx_set[k]
-                                expected_balances[tx[1]] += tx[4]
-                                expected_balances[tx[2]] -= tx[4]
-
-                                if get_balances() == expected_balances:
-                                    trace_reverted_txs(last_tx_set, [i, j, k])
-
-                                expected_balances[tx[1]] -= tx[4]
-                                expected_balances[tx[2]] += tx[4]
-
-                            tx = last_tx_set[j]
-                            expected_balances[tx[1]] -= tx[4]
-                            expected_balances[tx[2]] += tx[4]
-
-                        tx = last_tx_set[i]
-                        expected_balances[tx[1]] -= tx[4]
-                        expected_balances[tx[2]] += tx[4]
-
-                    logging.info(
-                        "The latest and greatest stats on successful/failed: %s/%s"
-                        % (good, bad))
                     assert False, "Balances didn't update in time. Expected: %s, received: %s" % (
                         expected_balances, get_balances())
             last_iter_switch = time.time()
 
         if mode == 0:
             # do not send more than 50 txs, so that at the end of the test we have time to query all of them. When #2195 is fixed, this condition can probably be safely removed
-            if tx_count < 50:
+#  MOO           if tx_count < 50:
                 from_ = random.randint(0, len(nodes) - 1)
                 while min_balances[from_] < 0:
                     from_ = random.randint(0, len(nodes) - 1)

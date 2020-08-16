@@ -212,7 +212,10 @@ async def bridge(reader, writer, handler_fn, global_stopped, local_stopped, erro
                 break
 
             assert len(header) == 4, header
-            raw_message = await reader.read(struct.unpack('I', header)[0])
+            raw_message_len = struct.unpack('I', header)[0]
+            raw_message = await reader.read(raw_message_len)
+            while len(raw_message) < raw_message_len:
+                raw_message += await reader.read(raw_message_len - len(raw_message))
 
             debug(
                 f"Message size={len(raw_message)} port={_MY_PORT} bridge_id={bridge_id}", level=2)

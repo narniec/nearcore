@@ -2588,7 +2588,7 @@ dependencies = [
  "strum",
  "tempfile",
  "tokio",
- "tokio-util 0.2.0",
+ "tokio-util 0.3.1",
  "tracing",
 ]
 

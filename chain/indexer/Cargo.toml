@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 actix = "0.9"
-tracing = "0.1.13"
+tracing = "0.1.19"
 futures = "0.3.5"
 tokio = { version = "0.2", features = ["time", "sync"] }
 

@@ -13,7 +13,7 @@ rocksdb = { git = "https://github.com/nearprotocol/rust-rocksdb", branch="disabl
 rand = "0.7"
 lazy_static = "1.4"
 num-rational = "0.2.4"
-num-bigint = "0.2.6"
+num-bigint = "0.3.2"
 num-traits = "0.2.11"
 
 borsh = "0.7.0"
